@@ -8,6 +8,7 @@
 .gitignore
 .dockerignore
 .vscode/
+.vercel/
 
 # Configurações de Servidores/Build
 # nginx.conf: Arquivo de configuração de servidor (ignorar se você o estiver usando apenas localmente para proxy).

@@ -7,6 +7,7 @@
 # Geralmente fica em .venv/ ou em um diretório global do sistema.
 # Se o Poetry criar na raiz do projeto (configuração padrão em alguns casos):
 .venv/
+.vercel/
 venv/
 *.egg-info/ # Mova daqui para cá para juntar com os itens do Poetry/Build
 
@@ -66,3 +67,4 @@ logs/
 # mas NUNCA a pasta do código-fonte.
 # Exemplo, se você tiver uma pasta 'db-data' para o volume do seu banco de dados:
 db-data/
+.vercel
