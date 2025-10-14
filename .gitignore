@@ -1,15 +1,68 @@
-# Ambiente virtual do Poetry (se configurado para ser local)
+# ==============================
+# 1. Arquivos do Poetry / Python
+# ==============================
+
+# Ambiente virtual local do Poetry (ALTAMENTE RECOMENDADO IGNORAR)
+# O Poetry cria um ambiente virtual isolado.
+# Geralmente fica em .venv/ ou em um diretório global do sistema.
+# Se o Poetry criar na raiz do projeto (configuração padrão em alguns casos):
 .venv/
-# Pasta de cache de Python
+venv/
+*.egg-info/ # Mova daqui para cá para juntar com os itens do Poetry/Build
+
+# Arquivos de cache e compilação do Python
 __pycache__/
-# Arquivos .pyc gerados
 *.pyc
+*.pyd
+*.so
 
-# Diretórios de builds
-dist/
+# Diretórios de build (se você for empacotar localmente)
 build/
-*.egg-info/
+dist/
 
-# Arquivos de IDEs comuns (opcional)
+
+# ==============================
+# 2. Arquivos de Teste / Cache
+# ==============================
+
+# Cache do pytest
+.pytest_cache/
+
+# Cache do ruff
+.ruff_cache/
+
+# ==============================
+# 3. Logs e Arquivos de Dados Locais
+# ==============================
+
+*.log
+**/*.log
+*.db
+**/*.db
+data/
+logs/
+
+# ==============================
+# 4. Configurações de IDEs (Opcional, mas recomendado)
+# ==============================
+
 .vscode/
 .idea/
+*.swp
+*~
+
+# ==============================
+# 5. Arquivos Docker / Container
+# ==============================
+
+# **ARQUIVOS ESSENCIAIS PARA O CONTAINER (NÃO IGNORAR):**
+# Dockerfile
+# docker-compose.yml / *.yaml / *.yml
+# pyproject.toml (Poetry)
+# poetry.lock (Poetry)
+
+# DOCKER: Arquivos gerados em tempo de execução
+# Se você tiver volumes persistentes, pode ignorar a pasta onde os dados ficam,
+# mas NUNCA a pasta do código-fonte.
+# Exemplo, se você tiver uma pasta 'db-data' para o volume do seu banco de dados:
+db-data/

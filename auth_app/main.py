@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+# caminho: auth_app/main.py
+# Funções:
+# - app: instancia FastAPI criada via create_application()
 
-app = FastAPI()
+from __future__ import annotations
 
-@app.get("/")
-async def read_root():
-    return {"message": "Hello, World!"}
+from auth_app.interfaces.api.app import create_application
+
+app = create_application()

@@ -1,0 +1,53 @@
+# ------------------------------------
+# 1. Arquivos de Sistema e Configuração
+# ------------------------------------
+
+# Arquivos de Configuração de Projeto/Ambiente
+.env
+.git
+.gitignore
+.dockerignore
+.vscode/
+
+# Configurações de Servidores/Build
+# nginx.conf: Arquivo de configuração de servidor (ignorar se você o estiver usando apenas localmente para proxy).
+nginx.conf 
+
+# Scripts e Arquivos de Build/Configuração
+# Arquivos de script de shell, de automação e de definição do Docker.
+*.sh
+*.yaml
+Dockerfile
+# IMPORTANTE: Se você tiver um arquivo 'docker-compose.yml', 
+# *.yaml o ignora, o que é desejável na maioria dos casos.
+
+# ------------------------------------
+# 2. Ambientes Python e Cache
+# ------------------------------------
+
+# Ambientes Virtuais do Poetry e Venv (Não devem ser copiados)
+.venv/
+venv/
+
+# Cache do Python
+__pycache__/
+
+# Cache de Ferramentas
+.pytest_cache/
+.ruff_cache/
+
+# ------------------------------------
+# 3. Logs e Dados (Geralmente não devem ser copiados)
+# ------------------------------------
+
+# Arquivos gerados e de log
+*.log
+**/*.log
+*.sqlite3
+*.db
+/data
+
+# Cache de pacotes e instalações locais
+# Adicionado para boa prática, pois pode ter sido gerado por um script local
+# e não precisa ir para o build.
+*.egg-info/
