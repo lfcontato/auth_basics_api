@@ -12,5 +12,5 @@
             "dest": "auth_app/main.py"
         }
     ],
-    "installCommand": "pip install poetry && poetry install --no-root"
+    "installCommand": "poetry install"
 }
