@@ -38,14 +38,14 @@ ssh-ed25519 AAAACCCCCC1lZDI1NTE5AAAAIBpSB8iV5Fjsxt9hHuTjt7BYR4mtgnpDGt38ZzQP7fAx
 
     # Adicione sua chave privada ao ssh-agent
     ssh-add ~/.ssh/id_ed25519
-    Enter passphrase for /home/seu-username/.ssh/id_ed25519: "senha-da-chave"
-    Identity added: /home/seu-username/.ssh/id_ed25519 (seu-email@dominio.com)
+    Enter passphrase for /home/usuario/.ssh/id_ed25519: "senha-da-chave"
+    Identity added: /home/usuario/.ssh/id_ed25519 (seu-email@dominio.com)
 
     # Execute o seguinte comando para testar se a conexão SSH com o GitHub está funcionando:
     ssh -T git@github.com
 
     Warning: Permanently added the ECDSA host key for IP address '4.228.31.150' to the list of known hosts.
-    Hi seu-username! You've successfully authenticated, but GitHub does not provide shell access.
+    Hi usuario! You've successfully authenticated, but GitHub does not provide shell access.
     ```
 
 
