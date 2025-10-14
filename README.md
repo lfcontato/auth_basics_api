@@ -20,8 +20,8 @@ git add .
 git commit -m "feat: initial project setup with Poetry"
 
 # ADICIONAR O REPOSITÓRIO REMOTO
-# Certifique-se de que o repositório 'lfcontato/auth_basics_api' existe no GitHub.
-git remote add origin git@github.com:lfcontato/auth_basics_api.git
+# Certifique-se de que o repositório 'seu-username/auth_basics_api' existe no GitHub.
+git remote add origin git@github.com:seu-username/auth_basics_api.git
 
 # RENOMEAR O BRANCH LOCAL PARA 'main'
 git branch -M main
