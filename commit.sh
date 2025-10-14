@@ -12,9 +12,9 @@ computer_name=$(hostname)
 # Exibe a data e o nome do computador
 # git config --global credential.helper osxkeychain
 # git config --global credential.helper 'cache --timeout=3600' # Armazena por 1 hora
-# git config --global user.name "luis.fernando.pereira@gmail.com"
-# git config --global user.email "luis.fernando.pereira@gmail.com"
-# git config --global credential.helper store
+git config --global user.name "luis.fernando.pereira@gmail.com"
+git config --global user.email "luis.fernando.pereira@gmail.com"
+git config --global credential.helper store
 git add .
 git commit -m "$computer_name $current_date"
-# git push
+git push
