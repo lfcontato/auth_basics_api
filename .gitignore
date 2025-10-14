@@ -1,0 +1,15 @@
+# Ambiente virtual do Poetry (se configurado para ser local)
+.venv/
+# Pasta de cache de Python
+__pycache__/
+# Arquivos .pyc gerados
+*.pyc
+
+# Diretórios de builds
+dist/
+build/
+*.egg-info/
+
+# Arquivos de IDEs comuns (opcional)
+.vscode/
+.idea/
