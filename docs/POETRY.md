@@ -1,7 +1,9 @@
 ```bash
+# Versão do python
 python --version
 Python 3.12.11
 
+# Versão do poetry
 poetry --version
 Poetry (version 2.1.4)
 
