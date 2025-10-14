@@ -2,14 +2,15 @@
     "version": 2,
     "builds": [
         {
-            "src": "app/main.py",
+            "src": "auth_app/main.py",
             "use": "@vercel/python"
         }
     ],
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "app/main.py"
+            "dest": "auth_app/main.py"
         }
-    ]
+    ],
+    "installCommand": "pip install poetry && poetry install --no-root"
 }
