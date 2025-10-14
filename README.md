@@ -36,6 +36,16 @@ git push -u origin main
 
 Comandos iniciais do poetry em: [POETRY.md](docs/POETRY.md)
 
+## 💻 [Dependencias do Projeto](docs/DEPENDENCIES.md)
+
+Dependencias do Projeto em: [DEPENDENCIES.md](docs/DEPENDENCIES.md)
+
 ## 💻 [Servidor Uvicorn](docs/UVICORN.md)
 
 Comandos do Uvicorn em: [UVICORN.md](docs/UVICORN.md)
+
+```text
+Comando úteis para o vscode:
+Aperte F1 (ou Ctrl + Shift + P / Cmd + Shift + P no Mac) para abrir a Paleta de Comandos.
+Digite Reload Window (Recarregar Janela) e selecione o comando.
+```
