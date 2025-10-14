@@ -1,4 +1,4 @@
-📁 **Gerar o par de chaves SSH no Linux**
+🔒 **Gerar o par de chaves SSH no Linux** 
 
 ### O processo para gerar e configurar uma chave SSH no Linux para usar com o GitHub (e evitar digitar credenciais) envolve três passos principais:
 

@@ -1,5 +1,11 @@
-# auth_basics_api
+# 🚀[auth_basics_api](https://auth-basics-api.vercel.app/)
 O sistema auth_basics_api utiliza JWT para autenticação, gerencia administradores de forma hierárquica, permite recuperação segura de senha, protege contra brute force. Consolidadando bases arquiteturais que tornam o auth_app seguro, escalável e alinhado a padrões modernos.
+
+## 🔒[Configurar SSH](docs/SSHKEY.md)
+
+Comandos configura chaves ssh no linux em [SSHKEY.md](docs/SSHKEY.md)
+
+## 💻 Criar o projeto
 
 ```bash
 # CRIAR O PROJETO NA PASTA workspace
@@ -25,3 +31,11 @@ git branch -M main
 git push -u origin main
 
 ```
+
+## 💻 [Ambiente Poetry](docs/POETRY.md)
+
+Comandos iniciais do poetry em: [POETRY.md](docs/POETRY.md)
+
+## 💻 [Servidor Uvicorn](docs/UVICORN.md)
+
+Comandos do Uvicorn em: [UVICORN.md](docs/UVICORN.md)

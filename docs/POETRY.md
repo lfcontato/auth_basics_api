@@ -1,3 +1,4 @@
+```bash
 python --version
 Python 3.12.11
 
@@ -14,3 +15,4 @@ poetry env activate
 poetry self add poetry-plugin-shell
 poetry env activate
 poetry shell
+```
