@@ -11,9 +11,12 @@ vercel pull --environment=development
 vercel env pull .env.development
 ```
 
-# Com o terminal no diretório do projeto, use o comando dev:
-
+# Com o terminal no diretório do projeto dev, use o comando dev:
 ```bash
 vercel dev
 ```
 
+# Com o terminal no diretório do projeto, use o comando dev:
+```bash
+vercel --prod
+```

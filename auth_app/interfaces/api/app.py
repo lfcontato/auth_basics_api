@@ -7,9 +7,9 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from auth_app.config import get_settings
-# from auth_app.interfaces.api.routers import admin, auth
+from auth_app.interfaces.api.routers import admin, auth
 from auth_app.shared.logging import setup_logging
-# from auth_app.shared.system_bootstrap import bootstrap_root_admin
+from auth_app.shared.system_bootstrap import bootstrap_root_admin
 
 
 def create_application() -> FastAPI:
@@ -19,11 +19,11 @@ def create_application() -> FastAPI:
         title='auth-app',
         version='0.2.0',
     )
-    # app.include_router(auth.router)
-    # app.include_router(admin.router)
+    app.include_router(auth.router)
+    app.include_router(admin.router)
 
-    # @app.on_event('startup')
-    # async def _bootstrap_root_admin() -> None:  # pragma: no cover - efeito colateral na inicialização
-    #     await bootstrap_root_admin()
+    @app.on_event('startup')
+    async def _bootstrap_root_admin() -> None:  # pragma: no cover - efeito colateral na inicialização
+        await bootstrap_root_admin()
 
     return app

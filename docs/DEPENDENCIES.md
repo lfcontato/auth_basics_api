@@ -21,5 +21,21 @@ poetry add --group dev taskipy
 ```bash
 # - pydantic-settings
 poetry add pydantic-settings
+# - pwdlib
+poetry add "pwdlib[argon2]"
+# - redis
+poetry add redis
+# - pyjwt
+poetry add pyjwt
+# - sqlalchemy
+poetry add sqlalchemy
+# - pydantic[email]
+poetry add 'pydantic[email]'
+# - asyncpg
+poetry add asyncpg
+# - jinja2
+poetry add jinja2
+# - python-multipart
+poetry add python-multipart
 
 ```

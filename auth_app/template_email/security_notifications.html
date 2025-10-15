@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Alerta de Segurança</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f7f7f7;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+      .header {
+        background: #c0392b;
+        color: #ffffff;
+        padding: 24px;
+        text-align: center;
+      }
+      .content {
+        padding: 24px;
+        color: #333333;
+        line-height: 1.6;
+      }
+      .content p {
+        margin: 0 0 16px;
+      }
+      .meta {
+        background: #f3f3f3;
+        border-radius: 6px;
+        padding: 16px;
+        margin-top: 16px;
+        font-size: 14px;
+      }
+      .meta strong {
+        display: inline-block;
+        width: 120px;
+      }
+      .footer {
+        padding: 16px;
+        text-align: center;
+        font-size: 12px;
+        color: #888888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Alerta de Segurança</h1>
+      </div>
+      <div class="content">
+        <p>Olá {{ admin_name }},</p>
+        <p>
+          Detectamos várias tentativas de acesso à sua conta que ultrapassaram o limite configurado. Por segurança, bloqueamos temporariamente as tentativas de login até que o período de proteção expire.
+        </p>
+        <div class="meta">
+          <p><strong>Login:</strong> {{ login }}</p>
+          <p><strong>Origem:</strong> {{ last_ip or 'N/A' }}</p>
+          <p><strong>User-Agent:</strong> {{ user_agent or 'N/A' }}</p>
+          <p><strong>Bloqueado em:</strong> {{ blocked_at or 'N/A' }}</p>
+          <p><strong>Tentativas restantes:</strong> 0</p>
+        </div>
+        <p>
+          Se você não reconhece essas tentativas, recomendamos alterar sua senha assim que o acesso for liberado. Caso já saiba que tratou-se de erro, nenhuma ação adicional é necessária — o bloqueio expira automaticamente após alguns minutos.
+        </p>
+        <p>
+          Em caso de dúvidas, entre em contato com o suporte.
+        </p>
+      </div>
+      <div class="footer">
+        <p>Equipe {{ product_name or 'Auth App' }}</p>
+      </div>
+    </div>
+  </body>
+</html>

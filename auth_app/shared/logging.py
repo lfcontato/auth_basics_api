@@ -19,32 +19,52 @@ LOG_FORMAT = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
 LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
 LOG_DIR = Path(__file__).resolve().parent.parent / 'logs'
 LOG_FILE = LOG_DIR / 'auth_app.log'
-CONFIG_STATE = {'logging': False, 'otel': False}
+CONFIG_STATE = {'logging': False, 'otel': False, 'vercel' : False}
 
+
+import logging
+import sys
+import os # Novo import necessário
+# from logging.handlers import RotatingFileHandler # Não é mais necessário para o Vercel
+# ... outros imports de Path ou LOG_DIR, etc.
+
+
+CONFIG_STATE = {'logging': False, 'otel': False, 'vercel' : False}
+# O CONFIG_STATE['vercel'] pode ser usado para controle local
 
 def setup_logging(level: str = 'INFO') -> None:
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-
+    # 1. VERIFICAÇÃO DO AMBIENTE VERCEL/LAMBDA
+    # A variável 'VERCEL' ou 'AWS_EXECUTION_ENV' indica o ambiente serverless.
+    IS_SERVERLESS_ENV = os.environ.get('VERCEL') == '1' or 'AWS_LAMBDA' in os.environ.get('AWS_EXECUTION_ENV', '')
+    
+    # 2. CONFIGURAÇÃO DE LOGS (SOMENTE STREAM)
     if not CONFIG_STATE['logging']:
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(logging.Formatter(LOG_FORMAT, LOG_DATEFMT))
 
-        file_handler = RotatingFileHandler(LOG_FILE, maxBytes=5 * 1024 * 1024, backupCount=5, encoding='utf-8')
-        file_handler.setFormatter(logging.Formatter(LOG_FORMAT, LOG_DATEFMT))
-
         root = logging.getLogger()
         root.setLevel(level.upper())
-        root.handlers = [stream_handler, file_handler]
+
+        # Adiciona o StreamHandler (funciona em todo lugar)
+        root.addHandler(stream_handler) 
+        
+        # 3. BLOQUEAR ESCRITA DE ARQUIVOS NO VERCEL
+        # Se NÃO for o ambiente serverless E você quiser logs em arquivo,
+        # OU se você quiser logs em arquivo mesmo no serverless, mas no /tmp
+        if not IS_SERVERLESS_ENV:
+            # Esta linha deve ser removida ou colocada DENTRO deste bloco 'if':
+            LOG_DIR.mkdir(parents=True, exist_ok=True) 
+
+            # DESCOMENTE e use o file_handler SOMENTE se não for serverless,
+            # ou altere LOG_FILE para usar o /tmp, mas é melhor evitar.
+            file_handler = RotatingFileHandler(LOG_FILE, maxBytes=5 * 1024 * 1024, backupCount=5, encoding='utf-8')
+            file_handler.setFormatter(logging.Formatter(LOG_FORMAT, LOG_DATEFMT))
+            root.addHandler(file_handler)
+            
         CONFIG_STATE['logging'] = True
     else:
         logging.getLogger().setLevel(level.upper())
-
-    # if not CONFIG_STATE['otel']:
-    #     LoggerProvider()  # ensure init (OTEL)
-    #     otel_logs.set_logger_provider(LoggerProvider())
-    #     LoggingInstrumentor().instrument(set_logging_format=False)
-    #     CONFIG_STATE['otel'] = True
-
+        
 
 def _log(event: str, payload: dict[str, Any | str | int], level: str) -> None:
     logger = logging.getLogger('auth_app')
