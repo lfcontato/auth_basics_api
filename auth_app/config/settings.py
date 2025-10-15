@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # Sistema / Log
     # -------------------------------------------------------------------------
     DEPLOYMENT_ENVIRONMENT: Literal["development", "staging", "production"] = "development"
-    LOG_LEVEL: Literal["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "FATAL"] = "WARNING"
+    LOG_LEVEL: Literal["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "FATAL"] = "WARNING" 
 
     # -------------------------------------------------------------------------
     # Postgres
