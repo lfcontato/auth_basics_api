@@ -37,5 +37,12 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     session: AsyncSession = SessionLocal()
     try:
         yield session
+        # COMMIT IMPLÍCITO (se não estiver em modo autocommit, 
+        # ou se você não tiver feito rollback/commit manualmente)
+    except Exception:
+        # Rollback em caso de erro
+        await session.rollback()
+        raise
     finally:
+        # Garante que a sessão está fechada e limpa
         await session.close()
