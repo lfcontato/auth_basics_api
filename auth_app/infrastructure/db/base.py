@@ -34,6 +34,7 @@ def create_async_engine_settings():
         pool_size=settings.DB_POOL_SIZE,
         max_overflow=settings.DB_MAX_OVERFLOW,
         pool_timeout=settings.DB_POOL_TIMEOUT_S,
+        ssl=settings.POSTGRES_SSL_MODE if hasattr(settings, 'POSTGRES_SSL_MODE') else 'disable',
         
         # 🚨 SOLUÇÃO DE CONEXÃO: Verifica a conexão antes de usar, forçando a reabertura se cair
         pool_pre_ping=True, 
@@ -69,4 +70,5 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
         raise
     finally:
         # Garante que a sessão está fechada e limpa
-        await session.close()
+        # await session.close()
+        pass

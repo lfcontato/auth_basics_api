@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "auth_app"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: SecretStr = SecretStr("postgres")
+    POSTGRES_SSL_MODE: Literal["disable", "allow", "prefer", "require", "verify-ca", "verify-full"] = "disable"
     
     # REMOVIDO: Linha incorreta que tentava usar quote_plus() no escopo da classe
     # POSTGRES_PASSWORD_ENCODED = quote_plus(POSTGRES_PASSWORD) 
