@@ -37,5 +37,13 @@ poetry add asyncpg
 poetry add jinja2
 # - python-multipart
 poetry add python-multipart
+# - alembic
+poetry add alembic
+# inicializar o diretório de migrations (para engine assíncrono):
+poetry run alembic init -t async migrations
+# se seu projeto for síncrono, use: poetry run alembic init migrations
+
+alembic revision --autogenerate -m "create users table"
+alembic upgrade head
 
 ```
