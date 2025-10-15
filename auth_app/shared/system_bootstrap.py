@@ -19,22 +19,30 @@ async def bootstrap_root_admin() -> None:
     username = (settings.ROOT_AUTH_USER or '').strip().lower()
     email = (settings.ROOT_AUTH_EMAIL or '').strip().lower()
     password = (settings.ROOT_AUTH_PASSWORD.get_secret_value() or '').strip()
+    
+    log_warning('ROOT_ADMIN_BOOTSTRAP_STARTUP', {'reason': 'bootstrap_root_admin'})
 
     if not username or not email or not password:
         log_warning('ROOT_ADMIN_BOOTSTRAP_SKIPPED', {'reason': 'missing_credentials'})
         return
+
+    log_warning('ROOT_ADMIN_BOOTSTRAP_STARTUP', {'reason': 'bootstrap_root_admin_2'})
 
     async with SessionLocal() as session:
         stmt = select(AdminModel).where(func.lower(AdminModel.email) == email)
         result = await session.execute(stmt)
         existing = result.scalar_one_or_none()
 
+        log_warning('ROOT_ADMIN_BOOTSTRAP_STARTUP', {'reason': 'bootstrap_root_admin_3'})
+
         if existing is None:
+            log_warning('ROOT_ADMIN_BOOTSTRAP_STARTUP', {'reason': 'no_existing'})
             stmt = select(AdminModel).where(func.lower(AdminModel.username) == username)
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
 
         if existing is not None:
+            log_warning('ROOT_ADMIN_BOOTSTRAP_STARTUP', {'reason': 'existing'})
             log_info('ROOT_ADMIN_BOOTSTRAP_EXISTS', {'admin_id': existing.id})
             return
 

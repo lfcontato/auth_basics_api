@@ -1,0 +1,91 @@
+services:
+  
+  # auth_app:
+  #   image: auth_app:latest 
+  #   build:
+  #     context: ./auth_app
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     # Postgres
+  #     POSTGRES_HOST: postgres
+  #     POSTGRES_PORT: "5432"
+  #     POSTGRES_DB: auth_app
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     # OpenTelemetry
+  #     OTEL_SERVICE_NAME: auth_app
+  #     OTEL_RESOURCE_ATTRIBUTES: service.namespace=auth-app,service.version=local,deployment.environment=dev
+  #     OTEL_EXPORTER_OTLP_ENDPOINT: http://otel:4317
+  #     OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+  #     OTEL_TRACES_EXPORTER: otlp
+  #     OTEL_METRICS_EXPORTER: otlp
+  #     OTEL_LOGS_EXPORTER: "none"
+  #     OTEL_EXPORTER_OTLP_INSECURE: "true"
+  #     OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
+  #     OTEL_PYTHON_LOG_LEVEL: debug
+  #     OTEL_METRIC_EXPORT_INTERVAL: "5000"
+  #     # (opcional) sampler de traces:
+  #     # OTEL_TRACES_SAMPLER: parentbased_always_on
+  #   ports:
+  #     - "8000:8000"
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '0.10'
+  #         memory: 256M
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - otel
+  #   restart: unless-stopped
+
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: auth_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M    
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+
+  # otel:
+  #   image: grafana/otel-lgtm
+  #   ports:
+  #     - "3000:3000"  # Grafana
+  #     - "4317:4317"  # gRPC
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '2'
+  #         memory: 1G
+  #   restart: unless-stopped    
+
+# =======================================================
+# 2. DEFINIÇÃO DE VOLUMES (Nível Superior)
+# =======================================================
+volumes:
+  # Define que o volume 'postgres_data' é externo
+  postgres_data:
+    external: true      

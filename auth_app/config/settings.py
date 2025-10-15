@@ -1,14 +1,9 @@
-# caminho: auth_app/settings.py
-# Conteúdo:
-# - Settings: carrega configurações do .env com validações/tipos
-# - Montagem automática do DATABASE_URL (se não vier no .env)
-# - Constantes de conveniência para import direto (REDIS_URL, DATABASE_URL, etc.)
-
 from __future__ import annotations
 
 from typing import Literal, Optional
+from urllib.parse import quote_plus # Mantido para a codificação
 
-from pydantic import AliasChoices, EmailStr, Field, SecretStr, field_validator
+from pydantic import AliasChoices, EmailStr, Field, SecretStr, field_validator, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -37,6 +32,9 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "auth_app"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: SecretStr = SecretStr("postgres")
+    
+    # REMOVIDO: Linha incorreta que tentava usar quote_plus() no escopo da classe
+    # POSTGRES_PASSWORD_ENCODED = quote_plus(POSTGRES_PASSWORD) 
 
     DATABASE_URL: Optional[str] = Field(
         default=None,
@@ -57,12 +55,17 @@ class Settings(BaseSettings):
         # Monta a URL a partir dos campos individuais
         data = info.data
         user = data.get("POSTGRES_USER", "postgres")
-        pwd = data.get("POSTGRES_PASSWORD", SecretStr("postgres"))
+        pwd_secret = data.get("POSTGRES_PASSWORD", SecretStr("postgres"))
         host = data.get("POSTGRES_HOST", "localhost")
         port = data.get("POSTGRES_PORT", 5432)
         db = data.get("POSTGRES_DB", "auth_app")
 
-        return f"postgresql+asyncpg://{user}:{pwd.get_secret_value()}@{host}:{port}/{db}"
+        # 🚨 CORREÇÃO: Extrai o valor bruto da senha e o codifica para URL
+        pwd_raw = pwd_secret.get_secret_value()
+        pwd_encoded = quote_plus(pwd_raw)
+
+        # Usa a senha CODIFICADA na montagem da URL
+        return f"postgresql+asyncpg://{user}:{pwd_encoded}@{host}:{port}/{db}"
 
     # -------------------------------------------------------------------------
     # Redis
@@ -70,7 +73,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
     DB_POOL_SIZE: int = 20
     DB_MAX_OVERFLOW: int = 40
-    DB_POOL_TIMEOUT_S: float = 30.0    
+    DB_POOL_TIMEOUT_S: float = 30.0
 
     # -------------------------------------------------------------------------
     # OpenTelemetry
@@ -106,7 +109,7 @@ class Settings(BaseSettings):
     SECRET_KEY: SecretStr = SecretStr("a-string-secret-at-least-256-bits-long")
     SECRET_ALGORITHM: str = "HS256"
     TOKEN_ACCESS_EXPIRE_SECONDS: int = 1800
-    TOKEN_REFRESH_EXPIRE_SECONDS: int = 2_592_000  # 30 dias
+    TOKEN_REFRESH_EXPIRE_SECONDS: int = 2_592_000 # 30 dias
     VERIFICATION_CODE_LENGTH: int = 4
     VERIFICATION_CODE_EXPIRE_SECONDS: int = 300
 
@@ -166,15 +169,17 @@ class Settings(BaseSettings):
     # -------------------------------------------------------------------------
     # Conveniências derivadas
     # -------------------------------------------------------------------------
+    
+    @property
+    def POSTGRES_PASSWORD_ENCODED(self) -> str:
+        """Retorna a senha do PostgreSQL codificada para uso seguro em URL (via @property)."""
+        raw_password = self.POSTGRES_PASSWORD.get_secret_value()
+        return quote_plus(raw_password)
+
     @property
     def POSTGRES_DSN_SAFE(self) -> str:
         """Retorna o DSN sem a senha (útil para logs)."""
+        # A montagem da URL segura deve usar a propriedade 'DATABASE_URL' já montada.
         return self.DATABASE_URL.replace(
             f":{self.POSTGRES_PASSWORD.get_secret_value()}@", ":***@", 1
         )
-
-
-
-
-    
-    

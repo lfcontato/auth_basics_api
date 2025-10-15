@@ -43,7 +43,10 @@ poetry add alembic
 poetry run alembic init -t async migrations
 # se seu projeto for síncrono, use: poetry run alembic init migrations
 
+alembic init -t async migrations
 alembic revision --autogenerate -m "create users table"
 alembic upgrade head
 
 ```
+
+# Source file could not be read Pylance

@@ -2,6 +2,7 @@
 
 docker compose down
 docker compose build --no-cache
+docker volume prune
 
 # Remove todas as imagens não utilizadas (se houver)
 docker rmi $(docker images -q) 2>/dev/null || true
@@ -23,3 +24,4 @@ docker stop $(docker ps -q) 2>/dev/null || true
 docker rm -f $(docker ps -aq) 2>/dev/null || true
 
 docker ps -a
+docker volume ls
