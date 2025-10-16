@@ -10,7 +10,13 @@ from jwt import DecodeError, ExpiredSignatureError, InvalidTokenError, decode
 
 from auth_app.config import get_settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/admin/auth/token')
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/admin/auth/token')
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl='/admin/auth/token',
+    auto_error=False # <-- CHAVE: Desativa o erro automático do FastAPI
+)
+
 
 
 async def require_authenticated_admin(token: str = Depends(oauth2_scheme)) -> dict[str, str]:

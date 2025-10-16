@@ -13,9 +13,19 @@ poetry add --group dev taskipy
 # *** requires-python = ">=3.12,<4.0"
 # *** executar o comando novamente:
 # *** poetry add --group dev taskipy
+
+
+# - rich # listar a arvore de diretorios
+poetry add --group dev rich
+tree = 'python ./tools/app_rich.py'
 ```
 
-
+# pyproject.toml
+```bash
+[tool.taskipy.tasks]
+pre_docker = 'sh ./tools/docker_clear.sh'
+docker = 'sh ./tools/docker_clear.sh'
+```
 
 # Instalar as dependências do projeto
 ```bash

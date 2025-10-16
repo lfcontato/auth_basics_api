@@ -4,8 +4,11 @@
 
 from __future__ import annotations
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from pwdlib import PasswordHash
+
+from fastapi import Header
+from typing import Annotated
 
 from auth_app.application.admins.use_cases import AdminAdapters, AdminService
 from auth_app.config import get_settings
@@ -20,6 +23,27 @@ from auth_app.infrastructure.security.jwt import JWTService
 from auth_app.shared.email_notifications import EmailVerificationNotifier
 from auth_app.shared.rate_limit import NullVerificationRateLimiter, RedisVerificationRateLimiter
 from auth_app.shared.security_lock import NullSecurityLockManager, RedisSecurityLockManager
+
+# --- Dependências de Contexto da Requisição ---
+# NOVO: Função para extrair a URL base da API 
+
+def get_api_base_url(request: Request) -> str:
+    """Extrai a URL base da requisição (esquema://host:porta)."""
+    # str(request.base_url) retorna 'http://host:port/' ou 'https://host/'
+    # rstrip('/') remove a barra final para que o path possa ser concatenado corretamente.
+    return str(request.base_url).rstrip('/')
+
+
+# Função que extrai o primeiro idioma aceito pelo cliente (ou o padrão 'pt_br')
+def get_user_locale(accept_language: Annotated[str | None, Header()] = None) -> str:
+    if accept_language:
+        # Pega o primeiro idioma da lista (ex: 'pt-BR,en;q=0.9' -> 'pt-BR')
+        locale_tag = accept_language.split(',')[0].strip().lower()
+        # Converte para o formato de arquivo (ex: 'pt-br' -> 'pt_br')
+        return locale_tag.replace('-', '_')
+    return "pt_br"
+
+UserLocale = Annotated[str, Depends(get_user_locale)]
 
 
 async def get_admin_service(
@@ -88,3 +112,5 @@ async def get_admin_service(
         verify_link_rate_limiter=verify_link_rate_limiter,
         redis_client=redis_client,
     )
+
+

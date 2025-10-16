@@ -32,4 +32,12 @@ ruff = "^0.14.0"
 pytest = "^8.4.2"
 pytest-cov = "^7.0.0"
 taskipy = "^1.14.1"
+rich = "^14.2.0"
+
+[tool.taskipy.tasks]
+pre_docker = 'sh ./tools/docker_clear.sh'
+docker = 'sh ./tools/docker_run.sh'
+upgrade = 'sh ./tools/db_start.sh'
+server = 'uvicorn auth_app.main:app --reload'
+tree = 'python ./tools/app_rich.py'
 

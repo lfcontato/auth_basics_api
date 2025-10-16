@@ -23,6 +23,7 @@ class RedisVerificationRateLimiter:
     async def acquire(self, login: str) -> tuple[bool, int]:
         key = self._key(login)
         added = await self._client.set(key, '1', nx=True, ex=self._interval)
+        
         if added:
             return True, self._interval
 

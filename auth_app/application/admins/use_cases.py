@@ -12,8 +12,9 @@ from string import digits
 from typing import Protocol, Sequence
 from uuid import uuid4
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from pwdlib import PasswordHash
+from pydantic import EmailStr
 
 from redis.asyncio import Redis
 
@@ -60,6 +61,7 @@ class AdminVerificationNotifier(Protocol):
         recipients: Sequence[str],
         code: str,
         expires_at_iso: str,
+        api_base_url: str
     ) -> None: ...
 
 
@@ -99,23 +101,17 @@ class AdminService:
     async def create_admin(
         self,
         payload: AdminCreateInput,
+        api_base_url: str | None = None,
         acting_admin_id: int | None = None,
         acting_system_role: str | None = None,
+        translator=None,
     ) -> AdminOutput:
-        # if acting_system_role is not None and acting_system_role.lower() != SYSTEM_ROLE_SUPERUSER:
-        #     log_warning('ADMIN_CREATE_FORBIDDEN', {'acting_admin_id': acting_admin_id})
-        #     raise HTTPException(
-        #         status_code=HTTPStatus.FORBIDDEN,
-        #         detail={'code': 'ADMIN_CREATE_FORBIDDEN'},
-        #     )
-
-        # if acting_system_role is not None and acting_system_role.lower() != SYSTEM_ROLE_SUPERUSER:
-        #     log_warning('ADMIN_CREATE_FORBIDDEN', {'acting_admin_id': acting_admin_id})
-        #     raise HTTPException(
-        #         status_code=HTTPStatus.FORBIDDEN,
-        #         detail={'code': 'ADMIN_CREATE_FORBIDDEN'},
-        #     )
-
+        
+        # ------------------------------------------------------------------
+        # 1. Definir o tradutor para uso interno
+        # Se 'translator' for None, usamos uma função dummy que retorna a chave
+        _ = translator if translator else lambda key, **kwargs: key        
+        
         if acting_system_role is not None and not can_manage_system_role(acting_system_role, payload.system_role):
             log_warning(
                 'ADMIN_HIERARCHY_FORBIDDEN',
@@ -123,7 +119,7 @@ class AdminService:
             )
             raise HTTPException(
                 status_code=HTTPStatus.FORBIDDEN,
-                detail={'code': 'ADMIN_SYSTEM_ROLE_FORBIDDEN'},
+                detail={'code': 'ADMIN_HIERARCHY_FORBIDDEN'},
             )
         
         password_hash = self._hasher.hash(payload.password.strip())
@@ -162,7 +158,7 @@ class AdminService:
 
         channel_for_issue = admin.verification_channel or 'email'
         admin, code = await self._issue_verification_code(admin, channel_for_issue)
-        await self._maybe_notify_verification(admin, code)
+        await self._maybe_notify_verification(admin, code, api_base_url)
         log_info('ADMIN_CREATED', {'admin_id': admin.id})
         return self._to_output(admin)
 
@@ -270,7 +266,7 @@ class AdminService:
                         user_agent=(user_agent or '')[:128],
                     )
             log_warning('ADMIN_INVALID_CREDENTIALS', {'login': login})
-            raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail={'code': 'ADMIN_INVALID_CREDENTIALS'})
+            raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail={'code': 'ADMIN_INVALID_CREDENTIALS', 'message': 'Credenciais inválidas.'})
 
         await self._locks.reset_failures(admin.id, 'login')
 
@@ -532,10 +528,33 @@ class AdminService:
         )
         return AdminMessageResponse(message='Conta desbloqueada com sucesso.')
 
-    async def trigger_password_recovery(self, admin_id: int, acting_admin_id: int, acting_system_role: str) -> AdminMessageResponse:
+    async def trigger_password_recovery(self, login: str, acting_admin_id: int, acting_system_role: str, api_base_url:str) -> AdminMessageResponse:
+        
+        admin = await self._admins.get_by_login(login)
+        log_info('trigger_password_recovery', {'admin': admin})
+        
+        # Somente Admin
+        # if acting_system_role is not None and acting_system_role.lower() != SYSTEM_ROLE_SUPERUSER:
+        #     log_warning('ADMIN_CREATE_FORBIDDEN', {'acting_admin_id': acting_admin_id})
+        #     raise HTTPException(
+        #         status_code=HTTPStatus.FORBIDDEN,
+        #         detail={'code': 'ADMIN_CREATE_FORBIDDEN'},
+        #     )        
+
+        # # Somente Nível Inferior        
+        if acting_system_role is not None and not can_manage_system_role(acting_system_role, admin.system_role):
+            log_warning(
+                'ADMIN_HIERARCHY_FORBIDDEN',
+                {'acting_system_role': acting_system_role, 'system_role': admin.system_role},
+            )
+            raise HTTPException(
+                status_code=HTTPStatus.FORBIDDEN,
+                detail={'code': 'ADMIN_SYSTEM_ROLE_FORBIDDEN'},
+            )        
+        
         self._ensure_privileged_role(acting_system_role)
 
-        admin = await self._admins.get_by_id(admin_id)
+        
         if admin is None:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={'code': 'ADMIN_NOT_FOUND'})
 
@@ -547,7 +566,7 @@ class AdminService:
             )
 
         token = await self._issue_password_recovery_token(admin)
-        await self._notify_password_recovery(admin, token)
+        await self._notify_password_recovery(admin, token, api_base_url)
         log_info(
             'ADMIN_PASSWORD_RECOVERY_TRIGGERED',
             {'admin_id': admin.id, 'acting_admin_id': acting_admin_id},
@@ -641,16 +660,17 @@ class AdminService:
         except Exception as exc:  # pragma: no cover - envio não deve quebrar fluxo
             log_warning('SECURITY_EMAIL_FAILED', {'admin_id': admin.id, 'error': str(exc)})
 
-    async def _notify_password_recovery(self, admin: Admin, token: str) -> None:
+    async def _notify_password_recovery(self, admin: Admin, token: str, api_base_url:str) -> None:
         if self._verification_notifier is None:
             return
         try:
             log_info('PASSWORD_RECOVERY_EMAIL_SENDING', {'admin_id': admin.id})
             await self._verification_notifier.send_password_recovery(
                 admin_name=admin.username,
-                login=admin.email,
+                email=admin.email,
                 recipients=[admin.email],
                 token=token,
+                api_base_url=api_base_url,
             )
         except Exception as exc:  # pragma: no cover
             log_warning('PASSWORD_RECOVERY_EMAIL_FAILED', {'admin_id': admin.id, 'error': str(exc)})
@@ -792,7 +812,10 @@ class AdminService:
         log_info('ADMIN_VERIFIED', {'admin_id': admin.id})
         return AdminMessageResponse(message='Conta verificada com sucesso.')
 
-    async def resend_verification_code(self, request: AdminResendVerificationRequest) -> AdminVerificationResponse:
+    async def resend_verification_code(self, request: AdminResendVerificationRequest, api_base_url: str) -> AdminVerificationResponse:
+        
+        log_info('resend_verification_code', {'api_base_url': api_base_url})
+        
         email = request.email.lower()
         allowed, retry_in = await self._verification_rate_limiter.acquire(email)
         if not allowed:
@@ -831,7 +854,7 @@ class AdminService:
         stored_channel = (admin.verification_channel or '').strip().lower()
         channel = requested_channel or stored_channel or None
         admin, code = await self._issue_verification_code(admin, channel)
-        await self._maybe_notify_verification(admin, code)
+        await self._maybe_notify_verification(admin, code, api_base_url)
         log_info('ADMIN_VERIFICATION_REGENERATED', {'admin_id': admin.id, 'channel': channel or ''})
         return AdminVerificationResponse(
             admin_id=admin.id,
@@ -859,7 +882,7 @@ class AdminService:
         admin = await self._admins.update_verification_code(admin)
         return admin, code
 
-    async def _maybe_notify_verification(self, admin: Admin, code: str) -> None:
+    async def _maybe_notify_verification(self, admin: Admin, code: str, api_base_url: str) -> None:
         if self._verification_notifier is None:
             return
         if admin.verification_channel != 'email':
@@ -896,6 +919,7 @@ class AdminService:
                     'admin_id': admin.id,
                     'recipients': recipients,
                     'expires_at': admin.verification_code_expires_at.isoformat(),
+                    'code': code,
                 },
             )
             await self._verification_notifier.send(
@@ -904,6 +928,7 @@ class AdminService:
                 recipients=recipients,
                 code=code,
                 expires_at_iso=admin.verification_code_expires_at.isoformat(),
+                api_base_url=api_base_url,
             )
         except Exception as exc:  # pragma: no cover - notificação não deve quebrar fluxo
             log_warning('ADMIN_VERIFICATION_EMAIL_FAILED', {'admin_id': admin.id, 'error': str(exc)})

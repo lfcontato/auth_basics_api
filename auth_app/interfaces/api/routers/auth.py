@@ -5,33 +5,33 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Form, Request, status
+from typing import Annotated
 
 from auth_app.application.admins.dto import (
     AdminMessageResponse,
     AdminProtectedVerificationRequest,
     AdminPasswordRecoveryRequest,
     AdminVerificationRequest,
+    AdminVerificationResponse,
 )
 from auth_app.application.admins.use_cases import AdminService
-from auth_app.interfaces.api.dependencies import get_admin_service
+from auth_app.interfaces.api.dependencies import get_admin_service, get_api_base_url, UserLocale
 from auth_app.shared.auth_dependencies import require_authenticated_admin
+from auth_app.shared.logging import log_info, log_warning
+
+
+from auth_app.interfaces.api.dependencies import get_user_locale
+from auth_app.shared.i18n import get_translator, get_default_translator
 
 router = APIRouter(prefix='/admin/auth', tags=['auth'])
 
+_default_ = get_default_translator()
 
 @router.post(
     '/token',
     status_code=status.HTTP_200_OK,
-    summary='Emitir tokens',
-    description="""Realiza autenticação via formulário (`username`/`password`) e retorna par de tokens JWT.
-
-Inclui o `admin_id`, `email` e `admin=true` nas claims para consumo interno.
-
-**Proteções**:
-- Rate limit configurável via `TOKEN_ISSUE_INTERVAL_SECONDS` por login.
-- Bloqueio temporário após falhas consecutivas (monitorado em Redis).
-- Registro de IP/User-Agent em caso de bloqueio.
-""",
+    summary=_default_("issue_token_summary"),
+    description=_default_("issue_token_description"),
 )
 async def issue_token(
     request: Request,
@@ -47,15 +47,8 @@ async def issue_token(
 @router.post(
     '/token/refresh',
     status_code=status.HTTP_200_OK,
-    summary='Renovar tokens',
-    description="""Recebe um refresh token válido e emite novo par access/refresh.
-
-Revoga a sessão anterior e cria uma nova, mantendo o `family_id` para auditoria.
-
-**Proteções**:
-- Rate limit configurável via `TOKEN_REFRESH_INTERVAL_SECONDS` por sessão/login.
-- Bloqueio temporário da sessão quando o hash não confere.
-""",
+    summary=_default_("refresh_token_summary"),
+    description=_default_("refresh_token_description"),    
 )
 async def refresh_token(
     request: Request,
@@ -134,3 +127,25 @@ async def recover_password(
     service: AdminService = Depends(get_admin_service),
 ) -> AdminMessageResponse:
     return await service.recover_password(payload)
+
+
+@router.post(
+    '/verification-code',
+    response_model=AdminVerificationResponse,
+    summary='Reenviar código de verificação',
+    description="""Regenera o código de verificação para o administrador informado via `email`.
+
+Se `channel` não for enviado, reaproveita o último canal registrado. Disponível apenas para contas ainda não verificadas.
+
+**Proteções**:
+- Rate limit (`VERIFICATION_RESEND_INTERVAL_SECONDS`) e throttle enquanto o código atual está válido.
+- Envia e-mail de verificação e registra tentativa no log.
+""",
+)
+async def resend_verification(
+    payload: AdminPasswordRecoveryRequest,
+    api_base_url=Depends(get_api_base_url),
+    service: AdminService = Depends(get_admin_service),
+) -> AdminVerificationResponse:
+    log_info('resend_verification', {'payload': payload})
+    return await service.resend_verification_code(payload, api_base_url)

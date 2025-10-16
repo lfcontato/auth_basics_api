@@ -1,0 +1,6 @@
+{
+    "user_created_successfully": "User created successfully.",
+    "email_sent_for_confirmation": "Confirmation email sent.",
+    "account_already_exists": "An account with this email already exists.",
+    "password_recovery_subject": "Password Recovery"
+}

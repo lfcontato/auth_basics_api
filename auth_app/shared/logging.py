@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import os
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
@@ -15,19 +16,13 @@ from typing import Any
 # from opentelemetry.instrumentation.logging import LoggingInstrumentor
 # from opentelemetry.sdk._logs import LoggerProvider  # noqa: PLC2701
 
-LOG_FORMAT = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
+# LOG_FORMAT = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
+LOG_FORMAT = '%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s'
+
 LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
 LOG_DIR = Path(__file__).resolve().parent.parent / 'logs'
 LOG_FILE = LOG_DIR / 'auth_app.log'
 CONFIG_STATE = {'logging': False, 'otel': False, 'vercel' : False}
-
-
-import logging
-import sys
-import os # Novo import necessário
-# from logging.handlers import RotatingFileHandler # Não é mais necessário para o Vercel
-# ... outros imports de Path ou LOG_DIR, etc.
-
 
 CONFIG_STATE = {'logging': False, 'otel': False, 'vercel' : False}
 # O CONFIG_STATE['vercel'] pode ser usado para controle local
@@ -66,10 +61,17 @@ def setup_logging(level: str = 'INFO') -> None:
         logging.getLogger().setLevel(level.upper())
         
 
-def _log(event: str, payload: dict[str, Any | str | int], level: str) -> None:
-    logger = logging.getLogger('auth_app')
-    getattr(logger, level.lower())('%s | %s', event, payload)
+# def _log(event: str, payload: dict[str, Any | str | int], level: str) -> None:
+#     logger = logging.getLogger('auth_app')
+#     getattr(logger, level.lower())('%s | %s', event, payload)
 
+def _log(event: str, payload: dict[str, Any | str | int], level: str) -> None:
+    logger = logging.getLogger() # Use o logger raiz
+    # stacklevel=3 significa que o logging irá procurar o arquivo e linha 3 níveis acima:
+    # 1: a função getattr()
+    # 2: a função log_info/log_warning/log_error
+    # 3: O arquivo que chamou log_info/log_warning/log_error
+    getattr(logger, level.lower())('%s | %s', event, payload, stacklevel=3)
 
 def log_info(event: str, payload: dict[str, Any | str | int]) -> None:
     _log(event, payload, 'info')

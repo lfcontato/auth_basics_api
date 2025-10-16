@@ -1,0 +1,4 @@
+{
+  "detail": "INVALID_TOKEN"
+}
+

@@ -107,6 +107,7 @@ class AdminVerificationResponse(BaseModel):
     expires_at: datetime
 
 
+
 class AdminResendVerificationRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
 

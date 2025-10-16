@@ -1,0 +1,23 @@
+{
+    "user_created_successfully": "Usuário criado com sucesso.",
+    "email_sent_for_confirmation": "E-mail de confirmação enviado.",
+    "account_already_exists": "Uma conta com este e-mail já existe.",
+    "password_recovery_subject": "Recuperação de Senha",
+    "issue_token_summary": "Emitir tokens",
+    "issue_token_description": "Realiza autenticação via formulário (`username`/`password`) e retorna par de tokens JWT.\n\nInclui o `admin_id`, `email` e `admin=true` nas claims para consumo interno.",
+    "refresh_token_summary": "Renovar tokens",
+    "refresh_token_description": "Recebe um refresh token válido e emite novo par access/refresh.",
+    "create_admin_summary": "Criar administrador",
+    "create_admin_description": "Cria um novo administrador com credenciais iniciais, contatos opcionais e gera um código de verificação.",
+    "admin_hierarchy_forbidden_log_key": "HIERARQUIA_ADMIN_PROIBIDA",
+    "admin_hierarchy_forbidden": "Você não tem permissão para criar um administrador com o papel de sistema solicitado.",
+    "admin_email_already_exists_log_key": "EMAIL_ADMIN_JA_EXISTE",
+    "admin_email_already_exists": "Já existe um administrador com este e-mail.",
+    "admin_created_successfully": "Administrador criado com sucesso.",
+    "admin_creation_email_subject": "Seu administrador foi criado",
+    "admin_creation_email_body": "Olá {admin_name},\n\nSeu administrador foi criado com sucesso.\n\nDetalhes de login:\n- Email: {admin_email}\n- Senha temporária: {temporary_password}\n\nPor favor, altere sua senha após o primeiro login.\n\nAtenciosamente,\nEquipe de Suporte",
+    "invalid_credentials": "Credenciais inválidas.",
+    "account_not_confirmed": "Conta não confirmada. Por favor, verifique seu e-mail.",
+    "account_disabled": "Conta desativada. Contate o suporte."
+}
+

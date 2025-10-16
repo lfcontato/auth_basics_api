@@ -23,7 +23,8 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # CÓDIGO DE DESLIGAMENTO (Shutdown) - se houver
+    # CÓDIGO DE DESLIGAMENTO (Shutdown)
+    log_warning('APP_SHUTDOWN', {'reason': 'lifespan'})
 
 
 def create_application() -> FastAPI:

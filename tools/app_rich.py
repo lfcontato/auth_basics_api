@@ -9,10 +9,23 @@ from rich.tree import Tree
 EXCLUDE_LIST = [
     '.git',
     '__pycache__',
+    '__init__.py',
     '.DS_Store',
     'tools',  # Exemplo: Ignorar a pasta 'tools' (se ela estiver no root_path)
     'README.md',  # Exemplo: Ignorar um arquivo específico
     '.ruff_cache',
+    '.vercel',
+    'docs',
+    'backups',
+    'migrations',
+    'tests',
+    'tools',
+    '.gitignore',
+    '.env.development',
+    '.dockerignore',
+    'compose.yaml',
+    'commit.sh',
+    'vercel.json',
 ]
 # --- Fim da Configuração de Exclusão ---
 

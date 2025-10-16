@@ -1,3 +1,6 @@
+# Opções: 'disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'
+POSTGRES_SSL_MODE='disable'  
+
 ```bash
 # =============================================================================
 # Postgres

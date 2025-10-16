@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query, Request, status
+from typing import Annotated
 
 # DTO  - Objeto de Transferência de Dados
 from auth_app.application.admins.dto import (
@@ -16,45 +17,51 @@ from auth_app.application.admins.dto import (
     AdminResendVerificationRequest,
     AdminUnlockStatusResponse,
     AdminUnlockRequest,
-    AdminVerificationResponse,
+    
     AdminListResponse,
 )
 from auth_app.application.admins.use_cases import AdminService
 from auth_app.config import get_settings
-from auth_app.interfaces.api.dependencies import get_admin_service
+from auth_app.shared.logging import log_info, log_warning
+from auth_app.interfaces.api.dependencies import get_admin_service, get_api_base_url
 from auth_app.shared.auth_dependencies import require_authenticated_admin
+
+from auth_app.interfaces.api.dependencies import get_user_locale, UserLocale
+from auth_app.shared.i18n import get_translator, get_default_translator
 
 router = APIRouter(prefix='/admin', tags=['admin'])
 
+# Você pode usar a dependência diretamente ou redefinir o alias para a rota:
+_default_ = get_default_translator()
+
+# Defina o tipo de dependência para injeção
+# UserLocaleDependency = Annotated[str, Depends(get_user_locale)]
+UserLocaleDependency = Depends(get_user_locale)
 
 @router.post(
     '/',
     response_model=AdminOutput,
     status_code=status.HTTP_201_CREATED,
-    summary='Criar administrador',
-    description="""Cria um novo administrador com credenciais iniciais, contatos opcionais e gera um código de verificação.
-
-    **Fluxo**:
-    1. Valida unicidade de `email` e `username`.
-    2. Persiste o admin, contatos e código de verificação.
-    3. Dispara e-mail de confirmação (canal fixo `email`).
-
-    **Proteções**:
-    - Apenas usuários `system_role=root` podem criar novas contas.
-    - Código inicial tem expiração (`VERIFICATION_CODE_EXPIRE_SECONDS`).
-    """,
+    summary=_default_("create_admin_summary"),
+    description=_default_("create_admin_description"),
 )
 async def create_admin(
     payload: AdminCreateInput,
+    api_base_url=Depends(get_api_base_url),
     current_admin=Depends(require_authenticated_admin),
     service: AdminService = Depends(get_admin_service),
+    locale: str = UserLocaleDependency,
 ) -> AdminOutput:
+    _ = get_translator(locale)
+    log_info('create_admin', {'payload': payload})
     acting_admin_id = int(current_admin['admin_id'])
     acting_system_role = current_admin['system_role']
     return await service.create_admin(
         payload,
+        api_base_url=api_base_url,
         acting_admin_id=acting_admin_id,
         acting_system_role=acting_system_role,
+        translator=_
     )
 
 
@@ -126,26 +133,6 @@ async def delete_admin(
     await service.delete_admin(admin_id, acting_admin_id)
 
 
-@router.post(
-    '/verification-code',
-    response_model=AdminVerificationResponse,
-    summary='Reenviar código de verificação',
-    description="""Regenera o código de verificação para o administrador informado via `email`.
-
-Se `channel` não for enviado, reaproveita o último canal registrado. Disponível apenas para contas ainda não verificadas.
-
-**Proteções**:
-- Rate limit (`VERIFICATION_RESEND_INTERVAL_SECONDS`) e throttle enquanto o código atual está válido.
-- Envia e-mail de verificação e registra tentativa no log.
-""",
-)
-async def resend_verification(
-    payload: AdminResendVerificationRequest,
-    service: AdminService = Depends(get_admin_service),
-) -> AdminVerificationResponse:
-    return await service.resend_verification_code(payload)
-
-
 @router.patch(
     '/password',
     response_model=AdminMessageResponse,
@@ -169,6 +156,7 @@ async def change_password(
     current_admin=Depends(require_authenticated_admin),
     service: AdminService = Depends(get_admin_service),
 ) -> AdminMessageResponse:
+    log_info('change_password', {'payload': payload})
     acting_admin_id = int(current_admin['admin_id'])
     client_ip = request.headers.get('x-forwarded-for', request.client.host if request.client else '')
     user_agent = request.headers.get('user-agent', '')
@@ -223,7 +211,7 @@ async def unlock_admin(
 
 
 @router.post(
-    '/{admin_id}/password-recovery',
+    '/password-recovery',
     response_model=AdminMessageResponse,
     summary='Disparar recuperação de senha',
     description="""Gera e envia o token de recuperação de senha para o administrador informado.
@@ -234,13 +222,19 @@ async def unlock_admin(
 """,
 )
 async def trigger_password_recovery(
-    admin_id: int,
+    login: str,
+    api_base_url=Depends(get_api_base_url),
     current_admin=Depends(require_authenticated_admin),
     service: AdminService = Depends(get_admin_service),
 ) -> AdminMessageResponse:
+    log_info('trigger_password_recovery', {'login': login})
+    log_info('trigger_password_recovery', {'current_admin': current_admin})
+    
     acting_admin_id = int(current_admin['admin_id'])
     acting_system_role = current_admin['system_role']
-    return await service.trigger_password_recovery(admin_id, acting_admin_id, acting_system_role)
+    
+    return await service.trigger_password_recovery(login, acting_admin_id, acting_system_role, api_base_url)
+
 
 
 @router.get(

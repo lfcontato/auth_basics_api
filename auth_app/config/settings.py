@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "auth_app"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: SecretStr = SecretStr("postgres")
-    POSTGRES_SSL_MODE: Literal["disable", "allow", "prefer", "require", "verify-ca", "verify-full"] = "disable"
+    POSTGRES_SSL_MODE: str = "disable"
     
     # REMOVIDO: Linha incorreta que tentava usar quote_plus() no escopo da classe
     # POSTGRES_PASSWORD_ENCODED = quote_plus(POSTGRES_PASSWORD) 
@@ -68,10 +68,59 @@ class Settings(BaseSettings):
         # Usa a senha CODIFICADA na montagem da URL
         return f"postgresql+asyncpg://{user}:{pwd_encoded}@{host}:{port}/{db}"
 
-    # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
     # Redis
     # -------------------------------------------------------------------------
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_HOST: str = 'localhost'
+    REDIS_PORT: int = 6379
+    REDIS_PASSWORD: SecretStr = SecretStr('') 
+    REDIS_USE_TLS: bool = False
+    REDIS_DB: int = 0 
+    
+    REDIS_URL: Optional[str] = Field(
+        default=None,
+        description="Ex.: rediss://:pass@host:port/db ou redis://host:port/db",
+        validation_alias=AliasChoices("REDIS_URL"),
+    )
+
+    @field_validator("REDIS_URL", mode="before")
+    @classmethod
+    def build_redis_url_if_missing(cls, v, info):
+        """Monta rediss://... ou redis://... a partir das partes quando não vier pronto no .env."""
+        if v and isinstance(v, str) and v.strip():
+            # O URL veio pronto, apenas verifica o esquema.
+            if not v.startswith(("redis://", "rediss://")):
+                 raise ValueError("REDIS_URL deve começar com 'redis://' ou 'rediss://'.")
+            return v
+
+        # Monta a URL a partir dos campos individuais
+        data = info.data
+        host = data.get("REDIS_HOST", "localhost")
+        port = data.get("REDIS_PORT", 6379)
+        db = data.get("REDIS_DB", 0)
+        
+        # Obtém a senha SecretStr e o estado do TLS
+        pwd_secret = data.get("REDIS_PASSWORD", SecretStr(''))
+        use_tls = data.get("REDIS_USE_TLS", False)
+        
+        # Extrai a senha bruta
+        pwd_raw = pwd_secret.get_secret_value()
+        
+        # 1. Define o esquema (Protocolo)
+        scheme = "rediss" if use_tls else "redis"
+
+        # 2. Define a parte da autenticação
+        auth_part = ""
+        if pwd_raw:
+            # Codifica a senha para URL
+            pwd_encoded = quote_plus(pwd_raw)
+            # Formato da URL: :senha@
+            auth_part = f":{pwd_encoded}@"
+        
+        # 3. Monta a URL final
+        return f"{scheme}://{auth_part}{host}:{port}/{db}"
+
+    # (Outros campos como DB_POOL_SIZE, etc., devem permanecer)
     DB_POOL_SIZE: int = 20
     DB_MAX_OVERFLOW: int = 40
     DB_POOL_TIMEOUT_S: float = 30.0
@@ -144,7 +193,7 @@ class Settings(BaseSettings):
     PASSWORD_CHANGED_SUBJECT: str = "Senha atualizada - BlockMap"
 
     EMAIL_BODY: str = "Corpo da mensagem ou caminho para um template."
-    EMAIL_VERIFICATION_LINK_BASE: str = "http://localhost:8000/admin/auth/verify-link"
+    EMAIL_VERIFICATION_PATH: str = "/admin/auth/verify-link"
 
     # -------------------------------------------------------------------------
     # Usuário inicial
