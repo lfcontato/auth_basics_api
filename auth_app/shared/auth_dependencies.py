@@ -8,13 +8,13 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import DecodeError, ExpiredSignatureError, InvalidTokenError, decode
 
+from auth_app.config.constants import OAUTH2_SCHEME_TOKEN_URL
+
 from auth_app.config import get_settings
 
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/admin/auth/token')
-
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl='/admin/auth/token',
-    auto_error=False # <-- CHAVE: Desativa o erro automático do FastAPI
+    tokenUrl=OAUTH2_SCHEME_TOKEN_URL,
+    auto_error=False
 )
 
 
